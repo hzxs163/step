@@ -1,0 +1,34 @@
+# 工作流名称
+name: 定时访问步数接口
+
+# 触发条件：定时执行 + 手动触发（方便测试）
+on:
+  # 定时任务配置（Cron 表达式，UTC 时间）
+  # 示例：每天北京时间 8:00 执行（UTC+8，所以 UTC 是 0:00）
+  schedule:
+    - cron: '0 0 * * *'
+  # 手动触发按钮（在 GitHub 仓库的 Actions 页面可点击运行）
+  workflow_dispatch:
+
+# 任务执行配置
+jobs:
+  visit-step-url:
+    # 运行环境：使用 Ubuntu 最新版
+    runs-on: ubuntu-latest
+    steps:
+      # 步骤1：检出仓库代码（虽然这里不需要代码，但这是 GitHub Actions 标准步骤）
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      # 步骤2：执行 curl 命令访问指定 URL
+      - name: 访问步数接口
+        run: |
+          # 使用 curl 发送 GET 请求，显示详细日志（方便排查问题）
+          curl -v "https://step.gt.tc/step/step.php?user=13655815291&pwd=12345678aA&step=9996"
+          # 捕获 curl 执行结果，确保任务失败时能感知
+          if [ $? -eq 0 ]; then
+            echo "URL 访问成功！"
+          else
+            echo "URL 访问失败！"
+            exit 1
+          fi
