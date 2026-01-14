@@ -1,34 +1,37 @@
-# 工作流名称
 name: 定时访问步数接口
 
-# 触发条件：定时执行 + 手动触发（方便测试）
 on:
-  # 定时任务配置（Cron 表达式，UTC 时间）
-  # 示例：每天北京时间 8:00 执行（UTC+8，所以 UTC 是 0:00）
   schedule:
-    - cron: '0 0 * * *'
-  # 手动触发按钮（在 GitHub 仓库的 Actions 页面可点击运行）
-  workflow_dispatch:
+    - cron: '0 0 * * *'  # 北京时间每天8点执行
+  workflow_dispatch:     # 手动触发
 
-# 任务执行配置
 jobs:
   visit-step-url:
-    # 运行环境：使用 Ubuntu 最新版
     runs-on: ubuntu-latest
     steps:
-      # 步骤1：检出仓库代码（虽然这里不需要代码，但这是 GitHub Actions 标准步骤）
       - name: 检出代码
         uses: actions/checkout@v4
 
-      # 步骤2：执行 curl 命令访问指定 URL
-      - name: 访问步数接口
-        run: |
-          # 使用 curl 发送 GET 请求，显示详细日志（方便排查问题）
-          curl -v "https://step.gt.tc/step/step.php?user=13655815291&pwd=12345678aA&step=9996"
-          # 捕获 curl 执行结果，确保任务失败时能感知
-          if [ $? -eq 0 ]; then
-            echo "URL 访问成功！"
-          else
-            echo "URL 访问失败！"
-            exit 1
-          fi
+      - name: 访问步数接口（带重试和自定义请求头）
+        uses: nick-fields/retry@v3  # 重试插件
+        with:
+          max_attempts: 3          # 最多重试3次
+          retry_delay_seconds: 10  # 每次重试间隔10秒
+          command: |
+            # 模拟浏览器请求头，避免被服务器识别为爬虫
+            curl -v \
+              --connect-timeout 30 \  # 连接超时30秒
+              --max-time 60 \         # 整体请求超时60秒
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+              -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
+              -H "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8" \
+              -H "Connection: keep-alive" \
+              "https://step.gt.tc/step/step.php?user=13655815291&pwd=12345678aA&step=10000"
+            
+            # 检查curl执行结果
+            if [ $? -eq 0 ]; then
+              echo "URL 访问成功！"
+            else
+              echo "URL 访问失败！"
+              exit 1
+            fi
