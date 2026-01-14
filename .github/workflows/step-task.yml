@@ -15,8 +15,9 @@ jobs:
       - name: 访问步数接口（带重试和自定义请求头）
         uses: nick-fields/retry@v3  # 重试插件
         with:
-          max_attempts: 3          # 最多重试3次
-          retry_delay_seconds: 10  # 每次重试间隔10秒
+          max_attempts: 3            # 最多重试3次
+          retry_wait_seconds: 10     # 重试间隔10秒（正确参数）
+          timeout_seconds: 60        # 单次请求超时60秒（必填参数）
           command: |
             # 模拟浏览器请求头，避免被服务器识别为爬虫
             curl -v \
