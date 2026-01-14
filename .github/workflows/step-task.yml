@@ -12,24 +12,18 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: 访问步数接口（带重试和自定义请求头）
-        uses: nick-fields/retry@v3  # 重试插件
+      - name: 访问步数接口（修复命令格式）
+        uses: nick-fields/retry@v3
         with:
-          max_attempts: 3            # 最多重试3次
-          retry_wait_seconds: 10     # 重试间隔10秒（正确参数）
-          timeout_seconds: 60        # 单次请求超时60秒（必填参数）
+          max_attempts: 3
+          retry_wait_seconds: 10
+          timeout_seconds: 60
+          # 改用单行命令，避免换行解析错误；URL 用引号包裹确保格式正确
           command: |
-            # 模拟浏览器请求头，避免被服务器识别为爬虫
-            curl -v \
-              --connect-timeout 30 \  # 连接超时30秒
-              --max-time 60 \         # 整体请求超时60秒
-              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-              -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" \
-              -H "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8" \
-              -H "Connection: keep-alive" \
-              "https://step.gt.tc/step/step.php?user=13655815291&pwd=12345678aA&step=10000"
+            # 单行 curl 命令，所有参数与 URL 整合，避免换行导致的解析问题
+            curl -v --connect-timeout 30 --max-time 60 -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8" -H "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8" -H "Connection: keep-alive" "https://step.gt.tc/step/step.php?user=13655815291&pwd=12345678aA&step=10000"
             
-            # 检查curl执行结果
+            # 检查 curl 执行结果
             if [ $? -eq 0 ]; then
               echo "URL 访问成功！"
             else
